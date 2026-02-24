@@ -33,50 +33,61 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   String _getErrorMessage(FirebaseAuthException e) {
-    developer.log('Firebase Auth Error: ${e.code} - ${e.message}', name: 'Login');
-    
+    developer.log(
+      'Firebase Auth Error: ${e.code} - ${e.message}',
+      name: 'Login',
+    );
+
     switch (e.code) {
       case 'invalid-email':
-        return 'L\'adresse email n\'est pas valide.';
+        return 'The email address is not valid.';
       case 'user-disabled':
-        return 'Ce compte a été désactivé.';
+        return 'This account has been disabled.';
       case 'user-not-found':
-        return 'Aucun compte ne correspond à cet email.';
+        return 'No account found with this email.';
       case 'wrong-password':
-        return 'Mot de passe incorrect.';
+        return 'Incorrect password.';
       case 'invalid-credential':
-        return 'Les identifiants fournis sont invalides.';
+        return 'The provided credentials are invalid.';
       case 'too-many-requests':
-        return 'Trop de tentatives. Veuillez réessayer plus tard.';
+        return 'Too many attempts. Please try again later.';
       case 'network-request-failed':
-        return 'Erreur réseau. Vérifiez votre connexion internet.';
+        return 'Network error. Please check your internet connection.';
       default:
-        return 'Erreur: ${e.message ?? e.code}';
+        return 'Error: ${e.message ?? e.code}';
     }
   }
 
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) {
-      developer.log('Validation du formulaire échouée', name: 'Login');
+      developer.log('Form validation failed', name: 'Login');
       return;
     }
 
     setState(() => _isLoading = true);
-    developer.log('Tentative de connexion avec l\'email: ${_emailController.text}', name: 'Login');
+    developer.log(
+      'Login attempt with email: ${_emailController.text}',
+      name: 'Login',
+    );
 
     try {
       await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text,
       );
-      developer.log('Connexion réussie', name: 'Login');
-      _showSnackBar('Connexion réussie !');
+      developer.log('Login successful', name: 'Login');
+      _showSnackBar('Login successful!');
     } on FirebaseAuthException catch (e) {
-      developer.log('Erreur Firebase Auth: ${e.code}', name: 'Login', error: e, level: 1000);
+      developer.log(
+        'Firebase Auth error: ${e.code}',
+        name: 'Login',
+        error: e,
+        level: 1000,
+      );
       _showSnackBar(_getErrorMessage(e), isError: true);
     } catch (e) {
-      developer.log('Erreur inattendue', name: 'Login', error: e, level: 1000);
-      _showSnackBar('Erreur inattendue: ${e.toString()}', isError: true);
+      developer.log('Unexpected error', name: 'Login', error: e, level: 1000);
+      _showSnackBar('Unexpected error: ${e.toString()}', isError: true);
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -87,7 +98,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Connexion')),
+      appBar: AppBar(title: const Text('Login')),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Form(
@@ -108,10 +119,10 @@ class _LoginPageState extends State<LoginPage> {
                 keyboardType: TextInputType.emailAddress,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Veuillez entrer un email';
+                    return 'Please enter an email';
                   }
                   if (!value.contains('@')) {
-                    return 'Email invalide';
+                    return 'Invalid email';
                   }
                   return null;
                 },
@@ -120,17 +131,17 @@ class _LoginPageState extends State<LoginPage> {
               TextFormField(
                 controller: _passwordController,
                 decoration: const InputDecoration(
-                  labelText: 'Mot de passe',
+                  labelText: 'Password',
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.lock),
                 ),
                 obscureText: true,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Veuillez entrer un mot de passe';
+                    return 'Please enter a password';
                   }
                   if (value.length < 6) {
-                    return 'Le mot de passe doit contenir au moins 6 caractères';
+                    return 'Password must be at least 6 characters';
                   }
                   return null;
                 },
@@ -147,23 +158,31 @@ class _LoginPageState extends State<LoginPage> {
                         width: 20,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Text('Se connecter', style: TextStyle(fontSize: 16)),
+                    : const Text('Login', style: TextStyle(fontSize: 16)),
               ),
               const SizedBox(height: 16),
               OutlinedButton(
                 onPressed: _isLoading
                     ? null
                     : () {
-                        developer.log('Navigation vers la page d\'inscription', name: 'Login');
+                        developer.log(
+                          'Navigating to registration page',
+                          name: 'Login',
+                        );
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (_) => const RegisterPage()),
+                          MaterialPageRoute(
+                            builder: (_) => const RegisterPage(),
+                          ),
                         );
                       },
                 style: OutlinedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
-                child: const Text('Créer un compte', style: TextStyle(fontSize: 16)),
+                child: const Text(
+                  'Create Account',
+                  style: TextStyle(fontSize: 16),
+                ),
               ),
             ],
           ),
@@ -179,4 +198,3 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 }
-

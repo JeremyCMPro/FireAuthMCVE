@@ -8,48 +8,51 @@ import 'login.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  developer.log('Initialisation de Firebase...', name: 'App');
+  developer.log('Initializing Firebase...', name: 'App');
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  developer.log('Firebase initialisé avec succès', name: 'App');
+  developer.log('Firebase initialized successfully', name: 'App');
   runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
-  
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Firebase Auth MCVE',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        useMaterial3: true,
-      ),
+      theme: ThemeData(primarySwatch: Colors.blue, useMaterial3: true),
       home: StreamBuilder<User?>(
         stream: FirebaseAuth.instance.authStateChanges(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            developer.log('En attente de l\'état d\'authentification...', name: 'App');
+            developer.log('Waiting for authentication state...', name: 'App');
             return const Scaffold(
               body: Center(child: CircularProgressIndicator()),
             );
           }
-          
+
           if (snapshot.hasError) {
-            developer.log('Erreur dans le stream d\'authentification', name: 'App', error: snapshot.error, level: 1000);
+            developer.log(
+              'Error in authentication stream',
+              name: 'App',
+              error: snapshot.error,
+              level: 1000,
+            );
             return Scaffold(
-              body: Center(
-                child: Text('Erreur: ${snapshot.error}'),
-              ),
+              body: Center(child: Text('Error: ${snapshot.error}')),
             );
           }
-          
+
           if (snapshot.hasData) {
-            developer.log('Utilisateur connecté: ${snapshot.data?.email}', name: 'App');
+            developer.log(
+              'User logged in: ${snapshot.data?.email}',
+              name: 'App',
+            );
             return const HomePage();
           }
-          
-          developer.log('Aucun utilisateur connecté', name: 'App');
+
+          developer.log('No user logged in', name: 'App');
           return const LoginPage();
         },
       ),
@@ -60,7 +63,11 @@ class MyApp extends StatelessWidget {
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
-  void _showSnackBar(BuildContext context, String message, {bool isError = false}) {
+  void _showSnackBar(
+    BuildContext context,
+    String message, {
+    bool isError = false,
+  }) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
@@ -72,32 +79,38 @@ class HomePage extends StatelessWidget {
 
   Future<void> _logout(BuildContext context) async {
     try {
-      developer.log('Déconnexion en cours...', name: 'HomePage');
+      developer.log('Logging out...', name: 'HomePage');
       await FirebaseAuth.instance.signOut();
-      developer.log('Déconnexion réussie', name: 'HomePage');
-      _showSnackBar(context, 'Déconnexion réussie');
+      developer.log('Logout successful', name: 'HomePage');
+      _showSnackBar(context, 'Logout successful');
     } catch (e) {
-      developer.log('Erreur lors de la déconnexion', name: 'HomePage', error: e, level: 1000);
-      _showSnackBar(context, 'Erreur lors de la déconnexion: $e', isError: true);
+      developer.log(
+        'Error during logout',
+        name: 'HomePage',
+        error: e,
+        level: 1000,
+      );
+      _showSnackBar(context, 'Error during logout: $e', isError: true);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
-    
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Accueil'),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const Text('Home'), centerTitle: true),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Icon(Icons.check_circle_outline, size: 100, color: Colors.green),
+            const Icon(
+              Icons.check_circle_outline,
+              size: 100,
+              color: Colors.green,
+            ),
             const SizedBox(height: 24),
             Card(
               child: Padding(
@@ -105,12 +118,15 @@ class HomePage extends StatelessWidget {
                 child: Column(
                   children: [
                     const Text(
-                      'Connecté en tant que:',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                      'Logged in as:',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      user?.email ?? 'Email non disponible',
+                      user?.email ?? 'Email not available',
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -119,7 +135,7 @@ class HomePage extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'UID: ${user?.uid ?? 'Non disponible'}',
+                      'UID: ${user?.uid ?? 'Not available'}',
                       style: const TextStyle(fontSize: 12, color: Colors.grey),
                     ),
                   ],
@@ -129,14 +145,17 @@ class HomePage extends StatelessWidget {
             const SizedBox(height: 32),
             ElevatedButton.icon(
               onPressed: () {
-                developer.log('Navigation vers la page de changement d\'email', name: 'HomePage');
+                developer.log(
+                  'Navigating to change email page',
+                  name: 'HomePage',
+                );
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const ChangeEmailPage()),
                 );
               },
               icon: const Icon(Icons.email),
-              label: const Text('Changer l\'email'),
+              label: const Text('Change Email'),
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 16),
               ),
@@ -145,7 +164,7 @@ class HomePage extends StatelessWidget {
             OutlinedButton.icon(
               onPressed: () => _logout(context),
               icon: const Icon(Icons.logout),
-              label: const Text('Se déconnecter'),
+              label: const Text('Logout'),
               style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 16),
               ),

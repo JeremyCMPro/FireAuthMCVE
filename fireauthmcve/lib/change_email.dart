@@ -32,92 +32,111 @@ class _ChangeEmailPageState extends State<ChangeEmailPage> {
   }
 
   String _getErrorMessage(FirebaseAuthException e) {
-    developer.log('Firebase Auth Error: ${e.code} - ${e.message}', name: 'ChangeEmail');
+    developer.log(
+      'Firebase Auth Error: ${e.code} - ${e.message}',
+      name: 'ChangeEmail',
+    );
 
     switch (e.code) {
       case 'invalid-email':
-        return 'L\'adresse email n\'est pas valide.';
+        return 'The email address is not valid.';
       case 'email-already-in-use':
-        return 'Cette adresse email est déjà utilisée par un autre compte.';
+        return 'This email address is already in use by another account.';
       case 'wrong-password':
-        return 'Le mot de passe actuel est incorrect.';
+        return 'The current password is incorrect.';
       case 'user-mismatch':
-        return 'Les identifiants ne correspondent pas à l\'utilisateur actuel.';
+        return 'The credentials do not match the current user.';
       case 'user-not-found':
-        return 'Utilisateur non trouvé.';
+        return 'User not found.';
       case 'invalid-credential':
-        return 'Les identifiants fournis sont invalides.';
+        return 'The provided credentials are invalid.';
       case 'requires-recent-login':
-        return 'Cette opération nécessite une reconnexion récente. Veuillez vous déconnecter et vous reconnecter.';
+        return 'This operation requires a recent login. Please logout and login again.';
       case 'too-many-requests':
-        return 'Trop de tentatives. Veuillez réessayer plus tard.';
+        return 'Too many attempts. Please try again later.';
       case 'network-request-failed':
-        return 'Erreur réseau. Vérifiez votre connexion internet.';
+        return 'Network error. Please check your internet connection.';
       default:
-        return 'Erreur: ${e.message ?? e.code}';
+        return 'Error: ${e.message ?? e.code}';
     }
   }
 
   Future<void> _changeEmail() async {
     if (!_formKey.currentState!.validate()) {
-      developer.log('Validation du formulaire échouée', name: 'ChangeEmail');
+      developer.log('Form validation failed', name: 'ChangeEmail');
       return;
     }
 
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
-      developer.log('Aucun utilisateur connecté', name: 'ChangeEmail', level: 1000);
-      _showSnackBar('Aucun utilisateur connecté', isError: true);
+      developer.log('No user logged in', name: 'ChangeEmail', level: 1000);
+      _showSnackBar('No user logged in', isError: true);
       return;
     }
 
     if (_newEmailController.text.trim() == user.email) {
-      _showSnackBar('Le nouvel email est identique à l\'email actuel', isError: true);
+      _showSnackBar(
+        'The new email is identical to the current email',
+        isError: true,
+      );
       return;
     }
 
     setState(() => _isLoading = true);
-    developer.log('Début du changement d\'email de ${user.email} vers ${_newEmailController.text}', name: 'ChangeEmail');
+    developer.log(
+      'Starting email change from ${user.email} to ${_newEmailController.text}',
+      name: 'ChangeEmail',
+    );
 
     try {
-      // Réauthentification en utilisant signInWithEmailAndPassword au lieu de reauthenticateWithCredential
-      // pour éviter le bug de cast de type dans Firebase Auth
-      developer.log('Tentative de réauthentification...', name: 'ChangeEmail');
+      developer.log('Attempting reauthentication...', name: 'ChangeEmail');
       await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: user.email!,
         password: _passwordController.text,
       );
-      developer.log('Réauthentification réussie', name: 'ChangeEmail');
+      developer.log('Reauthentication successful', name: 'ChangeEmail');
 
-      // Récupérer l'utilisateur actualisé
       final refreshedUser = FirebaseAuth.instance.currentUser;
 
       if (refreshedUser == null) {
-        throw Exception('Utilisateur non trouvé après réauthentification');
+        throw Exception('User not found after reauthentication');
       }
 
-      // Mise à jour de l'email directement
-      developer.log('Tentative de mise à jour de l\'email...', name: 'ChangeEmail');
-      await refreshedUser.verifyBeforeUpdateEmail(_newEmailController.text.trim());
-      developer.log('Email mis à jour avec succès: ${_newEmailController.text}', name: 'ChangeEmail');
+      developer.log('Attempting to update email...', name: 'ChangeEmail');
+      await refreshedUser.verifyBeforeUpdateEmail(
+        _newEmailController.text.trim(),
+      );
+      developer.log(
+        'Email mis à jour avec succès: ${_newEmailController.text}',
+        name: 'ChangeEmail',
+      );
 
       if (!mounted) return;
-      _showSnackBar('Email changé avec succès !');
+      _showSnackBar('Email changed successfully!');
 
-      // Nettoyer les champs
       _newEmailController.clear();
       _passwordController.clear();
 
-      // Retour à la page d'accueil après un délai
       Future.delayed(const Duration(seconds: 2), () {
         if (mounted) Navigator.pop(context);
       });
     } on FirebaseAuthException catch (e) {
-      developer.log('Erreur Firebase Auth: ${e.code}', name: 'ChangeEmail', error: e, level: 1000);
+      developer.log(
+        'Firebase Auth error: ${e.code}',
+        name: 'ChangeEmail',
+        error: e,
+        level: 1000,
+      );
       _showSnackBar(_getErrorMessage(e), isError: true);
     } catch (e, stackTrace) {
-      developer.log('Erreur inattendue', name: 'ChangeEmail', error: e, stackTrace: stackTrace, level: 1000);
-      _showSnackBar('Erreur inattendue: ${e.toString()}', isError: true);
+      developer.log(
+        'Unexpected error',
+        name: 'ChangeEmail',
+        error: e,
+        stackTrace: stackTrace,
+        level: 1000,
+      );
+      _showSnackBar('Unexpected error: ${e.toString()}', isError: true);
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -130,7 +149,7 @@ class _ChangeEmailPageState extends State<ChangeEmailPage> {
     final user = FirebaseAuth.instance.currentUser;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Changer l\'email')),
+      appBar: AppBar(title: const Text('Change Email')),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Form(
@@ -139,24 +158,27 @@ class _ChangeEmailPageState extends State<ChangeEmailPage> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                'Email actuel: ${user?.email ?? "Non connecté"}',
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                'Current email: ${user?.email ?? "Not logged in"}',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 24),
               TextFormField(
                 controller: _newEmailController,
                 decoration: const InputDecoration(
-                  labelText: 'Nouvel email',
+                  labelText: 'New Email',
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.email),
                 ),
                 keyboardType: TextInputType.emailAddress,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Veuillez entrer un email';
+                    return 'Please enter an email';
                   }
                   if (!value.contains('@')) {
-                    return 'Email invalide';
+                    return 'Invalid email';
                   }
                   return null;
                 },
@@ -165,17 +187,17 @@ class _ChangeEmailPageState extends State<ChangeEmailPage> {
               TextFormField(
                 controller: _passwordController,
                 decoration: const InputDecoration(
-                  labelText: 'Mot de passe actuel',
+                  labelText: 'Current Password',
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.lock),
                 ),
                 obscureText: true,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Veuillez entrer votre mot de passe';
+                    return 'Please enter your password';
                   }
                   if (value.length < 6) {
-                    return 'Le mot de passe doit contenir au moins 6 caractères';
+                    return 'Password must be at least 6 characters';
                   }
                   return null;
                 },
@@ -189,7 +211,7 @@ class _ChangeEmailPageState extends State<ChangeEmailPage> {
                         width: 20,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Text('Changer l\'email'),
+                    : const Text('Change Email'),
               ),
             ],
           ),
